@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>St. Louis Affordable Zip Code Finder — George Kindler</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0A1628;
+  --navy-mid:#1B3A6B;
+  --navy-light:#243E6E;
+  --red:#C0392B;
+  --gold:#D4A017;
+  --gold-light:#e8b820;
+  --green:#1a7a4a;
+  --green-light:#5DCAA5;
+  --gray:#8A9BB0;
+  --gray-light:#B0C0D0;
+  --cream:#F5F0E8;
+  --warn:#E8A020;
+  --white:#ffffff;
+  --hot-bg:rgba(26,122,74,0.15);
+  --hot-border:rgba(26,122,74,0.4);
+  --hot-text:#5DCAA5;
+  --warm-bg:rgba(212,160,23,0.12);
+  --warm-border:rgba(212,160,23,0.35);
+  --warm-text:#D4A017;
+  --slow-bg:rgba(192,57,43,0.12);
+  --slow-border:rgba(192,57,43,0.35);
+  --slow-text:#E88080;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--navy);color:var(--cream);min-height:100vh;}
+
+/* ── HEADER ── */
+.header{background:var(--navy);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:3px solid var(--gold);position:sticky;top:0;z-index:100;}
+.header-left h1{font-family:'Bebas Neue',sans-serif;font-size:20px;color:white;letter-spacing:2px;line-height:1.1;}
+.header-left h1 span{color:var(--gold);}
+.header-left p{font-size:10px;color:var(--gray);letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.header-right{font-family:'Bebas Neue',sans-serif;font-size:13px;color:var(--gold);letter-spacing:1.5px;text-align:right;}
+.header-right small{display:block;font-family:'DM Sans',sans-serif;font-size:10px;color:var(--gray);letter-spacing:.5px;margin-top:2px;}
+
+/* ── BUDGET PANEL ── */
+.budget-panel{background:var(--navy-mid);border-bottom:2px solid rgba(212,160,23,0.3);padding:20px 24px;}
+.budget-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;max-width:960px;}
+.budget-field label{display:block;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--gray);margin-bottom:5px;}
+.budget-field input,.budget-field select{
+  width:100%;padding:9px 12px;
+  background:rgba(255,255,255,0.07);
+  border:1.5px solid rgba(255,255,255,0.15);
+  border-radius:3px;font-family:'DM Sans',sans-serif;
+  font-size:13px;color:white;transition:border-color 0.15s;
+}
+.budget-field input:focus,.budget-field select:focus{outline:none;border-color:var(--gold);}
+.budget-field select option{background:var(--navy);}
+.budget-actions{display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;}
+.btn-find{
+  background:var(--gold);border:none;padding:10px 28px;
+  font-family:'Bebas Neue',sans-serif;font-size:15px;letter-spacing:2px;
+  color:var(--navy);cursor:pointer;border-radius:3px;transition:all 0.15s;
+}
+.btn-find:hover{background:var(--gold-light);transform:translateY(-1px);}
+.result-pill{
+  background:rgba(212,160,23,0.12);border:1px solid rgba(212,160,23,0.3);
+  border-radius:3px;padding:8px 16px;display:none;
+}
+.result-pill.visible{display:flex;align-items:center;gap:10px;}
+.result-pill .rp-label{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;}
+.result-pill .rp-val{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--gold);letter-spacing:1px;}
+
+/* ── FILTERS BAR ── */
+.filters-bar{
+  background:var(--navy);padding:12px 24px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.filters-label{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;margin-right:4px;}
+.filter-btn{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.5px;
+  padding:5px 14px;border:1.5px solid rgba(255,255,255,0.2);
+  border-radius:3px;color:rgba(255,255,255,0.55);background:transparent;cursor:pointer;transition:all 0.15s;
+}
+.filter-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(212,160,23,0.1);}
+.filter-btn:hover:not(.active){border-color:rgba(255,255,255,0.45);color:white;}
+
+.sort-group{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.sort-label{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:1px;}
+.sort-select{
+  padding:5px 10px;background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.15);border-radius:3px;
+  font-family:'DM Sans',sans-serif;font-size:11px;color:white;cursor:pointer;
+}
+.sort-select option{background:var(--navy);}
+
+/* ── RESULTS COUNT ── */
+.results-meta{padding:10px 24px;font-size:11px;color:var(--gray);border-bottom:1px solid rgba(255,255,255,0.06);}
+.results-meta span{color:var(--gold);font-weight:600;}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto;padding:0 24px 24px;}
+table{width:100%;border-collapse:collapse;min-width:820px;margin-top:16px;}
+thead th{
+  font-family:'Bebas Neue',sans-serif;font-size:12px;letter-spacing:1.5px;
+  color:var(--gray);padding:10px 14px;border-bottom:2px solid rgba(255,255,255,0.1);
+  text-align:left;white-space:nowrap;cursor:pointer;user-select:none;
+  background:var(--navy);position:sticky;top:61px;z-index:10;
+}
+thead th:hover{color:var(--gold-light);}
+thead th.sorted{color:var(--gold);}
+thead th .sort-arrow{margin-left:4px;opacity:0.6;font-size:10px;}
+
+tbody tr{
+  border-bottom:1px solid rgba(255,255,255,0.05);
+  transition:background 0.1s;cursor:default;
+}
+tbody tr:hover{background:rgba(255,255,255,0.03);}
+tbody tr.budget-match{background:rgba(212,160,23,0.04);}
+tbody tr.budget-match:hover{background:rgba(212,160,23,0.08);}
+
+td{padding:11px 14px;font-size:12px;vertical-align:middle;}
+
+.td-zip{
+  font-family:'Bebas Neue',sans-serif;font-size:16px;
+  letter-spacing:1px;color:white;white-space:nowrap;
+}
+.td-city{font-size:11px;color:var(--gray-light);margin-top:1px;}
+
+.td-price{
+  font-family:'Bebas Neue',sans-serif;font-size:15px;
+  letter-spacing:.5px;color:white;
+}
+.td-monthly{font-size:10px;color:var(--gray);margin-top:2px;}
+
+/* FW badge */
+.fw-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:58px;padding:4px 0;border-radius:2px;
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1px;
+  border:1px solid;
+}
+.fw-hot{background:var(--hot-bg);border-color:var(--hot-border);color:var(--hot-text);}
+.fw-warm{background:var(--warm-bg);border-color:var(--warm-border);color:var(--warm-text);}
+.fw-slow{background:var(--slow-bg);border-color:var(--slow-border);color:var(--slow-text);}
+
+/* DOM badge */
+.dom-val{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.5px;}
+.dom-hot{color:var(--green-light);}
+.dom-warm{color:var(--gold);}
+.dom-slow{color:#E88080;}
+
+/* Above list */
+.above-val{font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:.5px;color:var(--gray-light);}
+
+/* Signal badge */
+.signal{
+  display:inline-block;padding:3px 9px;border-radius:2px;
+  font-family:'Bebas Neue',sans-serif;font-size:11px;letter-spacing:1.2px;
+  border:1px solid;white-space:nowrap;
+}
+.sig-hot{background:var(--hot-bg);border-color:var(--hot-border);color:var(--hot-text);}
+.sig-active{background:var(--warm-bg);border-color:var(--warm-border);color:var(--warm-text);}
+.sig-slow{background:var(--slow-bg);border-color:var(--slow-border);color:var(--slow-text);}
+
+/* Budget match indicator */
+.match-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--gold);
+  display:inline-block;margin-right:6px;flex-shrink:0;
+}
+
+/* Tax note */
+.tax-tag{
+  font-size:9px;color:var(--gray);background:rgba(255,255,255,0.05);
+  padding:2px 6px;border-radius:2px;margin-left:4px;vertical-align:middle;
+}
+
+/* ── COMPARISON PANEL ── */
+.compare-panel{padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.compare-col{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:16px;}
+.compare-col.good{border-color:rgba(26,122,74,0.3);}
+.compare-col.caution{border-color:rgba(192,57,43,0.3);}
+.compare-title{
+  font-family:'Bebas Neue',sans-serif;font-size:14px;letter-spacing:1.5px;
+  margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.08);
+}
+.compare-title.good{color:var(--green-light);}
+.compare-title.caution{color:#E88080;}
+.compare-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:12px;
+}
+.compare-item:last-child{border-bottom:none;}
+.ci-zip{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.8px;color:white;}
+.ci-city{font-size:10px;color:var(--gray);margin-left:6px;}
+.ci-stats{text-align:right;font-size:11px;color:var(--gray-light);}
+.ci-stats strong{font-family:'Bebas Neue',sans-serif;font-size:13px;letter-spacing:.5px;}
+.ci-stats .ci-fw.hot{color:var(--green-light);}
+.ci-stats .ci-fw.warm{color:var(--gold);}
+.ci-stats .ci-fw.slow{color:#E88080;}
+
+/* ── FOOTER ── */
+.footer{
+  background:var(--navy-mid);padding:12px 24px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-top:1px solid rgba(255,255,255,0.1);flex-wrap:wrap;gap:8px;
+}
+.footer p{font-size:10px;color:var(--gray);}
+.footer a{color:var(--gold);text-decoration:none;}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  padding:60px 24px;text-align:center;color:var(--gray);
+}
+.empty-state p{font-size:13px;line-height:1.7;max-width:320px;margin:0 auto;}
+
+/* ── MOBILE ── */
+@media(max-width:768px){
+  .header{padding:12px 16px;}
+  .header-left h1{font-size:16px;}
+  .header-right{display:none;}
+  .budget-panel{padding:16px;}
+  .budget-grid{grid-template-columns:1fr 1fr;}
+  .filters-bar{padding:10px 16px;}
+  .sort-group{margin-left:0;width:100%;}
+  .table-wrap{padding:0 12px 24px;}
+  .compare-panel{grid-template-columns:1fr;padding:16px;}
+  .results-meta{padding:8px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-left">
+    <h1>ST. LOUIS <span>ZIP CODE FINDER</span></h1>
+    <p>George Kindler · The Closing Pros · 79 Zip Codes · 2025 MARIS Data</p>
+  </div>
+  <div class="header-right">
+    GEORGE KINDLER
+    <small>Licensed Missouri Real Estate Agent · 13 Years</small>
+  </div>
+</header>
+
+<!-- BUDGET PANEL -->
+<div class="budget-panel">
+  <div class="budget-grid">
+    <div class="budget-field">
+      <label>Max Monthly Payment ($)</label>
+      <input type="number" id="b-payment" value="1800" min="500" max="10000" step="50">
+    </div>
+    <div class="budget-field">
+      <label>Down Payment ($)</label>
+      <input type="number" id="b-down" value="20000" min="0" step="1000">
+    </div>
+    <div class="budget-field">
+      <label>Interest Rate (%)</label>
+      <input type="number" id="b-rate" value="6.1" min="3" max="12" step="0.05">
+    </div>
+    <div class="budget-field">
+      <label>Monthly Debts ($)</label>
+      <input type="number" id="b-debts" value="0" min="0" step="50">
+    </div>
+  </div>
+  <div class="budget-actions">
+    <button class="btn-find" onclick="runBudget()">FIND MY ZIP CODES →</button>
+    <div class="result-pill" id="result-pill">
+      <div>
+        <div class="rp-label">Max Purchase Price</div>
+        <div class="rp-val" id="pill-price">—</div>
+      </div>
+      <div style="width:1px;height:32px;background:rgba(255,255,255,0.15);"></div>
+      <div>
+        <div class="rp-label">Zip Codes In Budget</div>
+        <div class="rp-val" id="pill-count">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTERS -->
+<div class="filters-bar">
+  <span class="filters-label">Show:</span>
+  <button class="filter-btn active" id="f-all" onclick="setFilter('all')">ALL ZIPS</button>
+  <button class="filter-btn" id="f-budget" onclick="setFilter('budget')">FITS BUDGET</button>
+  <button class="filter-btn" id="f-competitive" onclick="setFilter('competitive')">COMPETITIVE (FW ≥45%)</button>
+  <button class="filter-btn" id="f-value" onclick="setFilter('value')">BEST VALUE</button>
+
+  <div class="sort-group">
+    <span class="sort-label">Sort by:</span>
+    <select class="sort-select" id="sort-select" onchange="renderTable()">
+      <option value="price">Price ↑</option>
+      <option value="fw" selected>First Weekend ↓</option>
+      <option value="dom">Days on Market ↑</option>
+      <option value="above">% Above List ↓</option>
+      <option value="monthly">Monthly Payment ↑</option>
+    </select>
+  </div>
+</div>
+
+<!-- RESULTS META -->
+<div class="results-meta" id="results-meta">Showing <span id="count-display">—</span> zip codes · 2025 MARIS MLS data · <span style="color:var(--gold);">●</span> = fits your budget</div>
+
+<!-- TABLE -->
+<div class="table-wrap">
+  <table id="main-table">
+    <thead>
+      <tr>
+        <th onclick="toggleSort('zip')">ZIP / CITY <span class="sort-arrow" id="sa-zip"></span></th>
+        <th onclick="toggleSort('price')">MEDIAN PRICE <span class="sort-arrow" id="sa-price"></span></th>
+        <th onclick="toggleSort('monthly')">EST. MONTHLY <span class="sort-arrow" id="sa-monthly"></span></th>
+        <th onclick="toggleSort('fw')">FIRST WEEKEND <span class="sort-arrow" id="sa-fw">↓</span></th>
+        <th onclick="toggleSort('dom')">DAYS ON MKT <span class="sort-arrow" id="sa-dom"></span></th>
+        <th onclick="toggleSort('above')">% ABOVE LIST <span class="sort-arrow" id="sa-above"></span></th>
+        <th>MARKET SIGNAL</th>
+        <th>SALES</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+  <div class="empty-state" id="empty-state" style="display:none;">
+    <p>No zip codes match the current filters. Try adjusting your budget or switching to "All Zips".</p>
+  </div>
+</div>
+
+<!-- COMPARISON PANEL -->
+<div class="compare-panel" id="compare-panel">
+  <div class="compare-col good">
+    <div class="compare-title good">✓ BEST VALUE — AFFORDABLE + COMPETITIVE</div>
+    <div id="compare-good"></div>
+  </div>
+  <div class="compare-col caution">
+    <div class="compare-title caution">⚠ AFFORDABLE BUT SLOW — BUYER HAS LEVERAGE</div>
+    <div id="compare-caution"></div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>Data: 2025 residential sales · St. Louis County, St. Louis City, Jefferson County, St. Charles County · MARIS MLS</p>
+  <p>
+    <a href="https://sites.google.com/view/st-louis-real-estate-guides/freestlouisrealestateguides" target="_blank">📊 Full Resource Hub</a>
+    &nbsp;·&nbsp;
+    <a href="tel:3144351087">📞 314.435.1087</a>
+    &nbsp;·&nbsp;
+    <a href="https://gkindler-help.github.io/buyeraffordabilityheatmap/" target="_blank">🗺 Heat Map</a>
+  </p>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const ZIP_DATA = {
+  "63005":{city:"Chesterfield",n:70,fw:41.4,dom:7.5,price:800000,splp:100.0,above:52.9},
+  "63010":{city:"Arnold",n:122,fw:45.9,dom:6.5,price:282400,splp:101.4,above:67.2},
+  "63011":{city:"Ballwin",n:169,fw:47.3,dom:6,price:455000,splp:101.1,above:69.2},
+  "63012":{city:"Barnhart",n:43,fw:39.5,dom:9,price:290000,splp:100.0,above:69.8},
+  "63016":{city:"Cedar Hill",n:26,fw:26.9,dom:37.5,price:326000,splp:98.7,above:46.2},
+  "63017":{city:"Chesterfield",n:130,fw:46.9,dom:6.0,price:575000,splp:100.0,above:59.2},
+  "63019":{city:"Crystal City",n:27,fw:33.3,dom:25,price:230000,splp:100.0,above:55.6},
+  "63020":{city:"De Soto",n:126,fw:19.0,dom:38.5,price:219500,splp:100.0,above:56.3},
+  "63021":{city:"Ballwin",n:192,fw:49.0,dom:6.0,price:414200,splp:100.6,above:69.3},
+  "63023":{city:"Dittmer",n:24,fw:29.2,dom:33.0,price:332500,splp:100.0,above:54.2},
+  "63025":{city:"Eureka",n:108,fw:21.3,dom:32.5,price:442500,splp:99.9,above:50.0},
+  "63026":{city:"Fenton",n:224,fw:46.0,dom:7.0,price:387400,splp:100.7,above:70.5},
+  "63028":{city:"Festus",n:149,fw:31.5,dom:19,price:320000,splp:100.0,above:61.1},
+  "63031":{city:"Florissant",n:217,fw:36.4,dom:11,price:180000,splp:100.0,above:69.6},
+  "63033":{city:"Florissant",n:151,fw:30.5,dom:16,price:220000,splp:100.0,above:65.6},
+  "63034":{city:"Florissant",n:71,fw:26.8,dom:18,price:289000,splp:100.0,above:53.5},
+  "63038":{city:"Wildwood",n:34,fw:47.1,dom:4.5,price:626200,splp:100.0,above:58.8},
+  "63040":{city:"Wildwood",n:45,fw:53.3,dom:6,price:525000,splp:100.8,above:71.1},
+  "63042":{city:"Hazelwood",n:64,fw:34.4,dom:9.0,price:195000,splp:100.0,above:59.4},
+  "63043":{city:"Maryland Heights",n:83,fw:53.0,dom:4,price:295000,splp:101.9,above:71.1},
+  "63044":{city:"Bridgeton",n:40,fw:42.5,dom:9.5,price:267500,splp:100.0,above:65.0},
+  "63048":{city:"Herculaneum",n:25,fw:24.0,dom:24,price:319900,splp:100.0,above:64.0},
+  "63049":{city:"High Ridge",n:82,fw:45.1,dom:6.0,price:297500,splp:100.0,above:64.6},
+  "63050":{city:"Hillsboro",n:90,fw:31.1,dom:36.0,price:328500,splp:100.0,above:61.1},
+  "63051":{city:"House Springs",n:61,fw:36.1,dom:11,price:290000,splp:100.0,above:60.7},
+  "63052":{city:"Imperial",n:132,fw:50.0,dom:6.0,price:331500,splp:100.4,above:72.0},
+  "63069":{city:"Pacific",n:22,fw:22.7,dom:27.5,price:532500,splp:100.0,above:54.5},
+  "63070":{city:"Pevely",n:37,fw:40.5,dom:14,price:281000,splp:101.7,above:78.4},
+  "63074":{city:"St. Ann",n:61,fw:24.6,dom:18,price:166500,splp:100.0,above:57.4},
+  "63088":{city:"Valley Park",n:37,fw:56.8,dom:5,price:320000,splp:101.4,above:73.0},
+  "63104":{city:"St. Louis City",n:64,fw:21.9,dom:18.0,price:443200,splp:99.3,above:45.3},
+  "63105":{city:"Clayton",n:21,fw:33.3,dom:19,price:850000,splp:100.0,above:61.9},
+  "63108":{city:"St. Louis City",n:17,fw:23.5,dom:32,price:581000,splp:98.4,above:35.3},
+  "63109":{city:"St. Louis City",n:152,fw:45.4,dom:8.0,price:301700,splp:100.0,above:66.4},
+  "63110":{city:"St. Louis City",n:54,fw:31.5,dom:18.0,price:349700,splp:100.0,above:53.7},
+  "63111":{city:"St. Louis City",n:66,fw:27.3,dom:34.0,price:165000,splp:100.0,above:62.1},
+  "63112":{city:"St. Louis City",n:19,fw:0.0,dom:62,price:275000,splp:98.0,above:42.1},
+  "63114":{city:"Overland",n:136,fw:38.2,dom:8.0,price:164400,splp:100.0,above:65.4},
+  "63115":{city:"St. Louis City N",n:9,fw:11.1,dom:44,price:74600,splp:99.6,above:44.4},
+  "63116":{city:"St. Louis City",n:201,fw:30.3,dom:21,price:221600,splp:100.0,above:65.2},
+  "63117":{city:"Richmond Heights",n:31,fw:48.4,dom:9,price:355000,splp:101.9,above:67.7},
+  "63118":{city:"St. Louis City",n:80,fw:23.8,dom:28.5,price:263400,splp:100.0,above:51.2},
+  "63119":{city:"Webster Groves",n:164,fw:52.4,dom:5.0,price:393000,splp:101.6,above:71.3},
+  "63121":{city:"Normandy",n:63,fw:19.0,dom:32,price:116000,splp:98.8,above:49.2},
+  "63122":{city:"Kirkwood",n:239,fw:54.4,dom:5,price:600000,splp:100.9,above:69.0},
+  "63123":{city:"Affton",n:236,fw:48.3,dom:6.0,price:259500,splp:100.3,above:72.0},
+  "63124":{city:"Ladue",n:30,fw:33.3,dom:35.0,price:787500,splp:99.4,above:50.0},
+  "63125":{city:"Mehlville",n:122,fw:47.5,dom:7.0,price:219000,splp:101.8,above:70.5},
+  "63126":{city:"Crestwood",n:80,fw:53.8,dom:5.0,price:330000,splp:102.3,above:75.0},
+  "63127":{city:"Sunset Hills",n:20,fw:45.0,dom:6.5,price:739000,splp:100.0,above:60.0},
+  "63128":{city:"Oakville",n:107,fw:48.6,dom:5,price:421900,splp:100.0,above:69.2},
+  "63129":{city:"Oakville S.",n:198,fw:44.4,dom:7.5,price:360000,splp:101.1,above:70.2},
+  "63130":{city:"University City",n:127,fw:36.2,dom:11,price:457900,splp:100.0,above:61.4},
+  "63131":{city:"Des Peres",n:58,fw:46.6,dom:7.5,price:832500,splp:100.2,above:63.8},
+  "63132":{city:"Overland",n:43,fw:32.6,dom:26,price:475000,splp:100.0,above:55.8},
+  "63134":{city:"Pagedale",n:53,fw:32.1,dom:12,price:120000,splp:100.0,above:56.6},
+  "63135":{city:"Ferguson",n:84,fw:23.8,dom:19.5,price:115600,splp:100.0,above:52.4},
+  "63136":{city:"Jennings",n:135,fw:19.3,dom:25,price:95000,splp:99.7,above:49.6},
+  "63137":{city:"Bellefontaine Nbrs",n:59,fw:20.3,dom:23,price:110000,splp:100.0,above:55.9},
+  "63138":{city:"N. County",n:59,fw:22.0,dom:32,price:158200,splp:100.0,above:50.8},
+  "63139":{city:"St. Louis City SW",n:118,fw:44.1,dom:7.0,price:255500,splp:100.0,above:60.2},
+  "63141":{city:"Creve Coeur",n:76,fw:46.1,dom:5.5,price:637000,splp:100.0,above:67.1},
+  "63143":{city:"Maplewood",n:35,fw:40.0,dom:11,price:290000,splp:100.0,above:62.9},
+  "63144":{city:"Brentwood",n:44,fw:52.3,dom:7.0,price:402500,splp:100.2,above:68.2},
+  "63146":{city:"Maryland Hts W.",n:97,fw:43.3,dom:7,price:355000,splp:100.0,above:60.8},
+  "63147":{city:"St. Louis City N",n:19,fw:5.3,dom:28,price:114000,splp:100.0,above:52.6},
+  "63301":{city:"St. Charles",n:210,fw:44.3,dom:6.0,price:320000,splp:100.0,above:68.1},
+  "63303":{city:"St. Charles",n:93,fw:59.1,dom:4,price:333000,splp:100.0,above:73.1},
+  "63304":{city:"St. Charles",n:116,fw:50.0,dom:5.0,price:350000,splp:100.8,above:70.7},
+  "63366":{city:"O'Fallon",n:138,fw:42.0,dom:10.5,price:328200,splp:100.0,above:68.8},
+  "63367":{city:"Lake St. Louis",n:65,fw:36.9,dom:11,price:345000,splp:100.0,above:50.8},
+  "63368":{city:"O'Fallon S.",n:84,fw:42.9,dom:6.5,price:360000,splp:100.0,above:63.1},
+  "63376":{city:"St. Peters",n:272,fw:50.4,dom:5.0,price:329900,splp:100.7,above:72.1},
+  "63385":{city:"Wentzville",n:197,fw:36.5,dom:12,price:340000,splp:100.0,above:65.5}
+};
+
+const ZIP_TAX = {
+  "63005":0.0092,"63010":0.0114,"63011":0.0114,"63012":0.0114,"63016":0.0114,
+  "63017":0.0114,"63019":0.0114,"63020":0.0114,"63021":0.0114,"63023":0.0114,
+  "63025":0.0114,"63026":0.0114,"63028":0.0114,"63031":0.0114,"63033":0.0114,
+  "63034":0.0114,"63038":0.0114,"63040":0.0114,"63042":0.0114,"63043":0.0114,
+  "63044":0.0114,"63048":0.0114,"63049":0.0114,"63050":0.0114,"63051":0.0114,
+  "63052":0.0114,"63069":0.0114,"63070":0.0114,"63074":0.0114,"63088":0.0114,
+  "63104":0.0102,"63105":0.0118,"63108":0.0102,"63109":0.0102,"63110":0.0102,
+  "63111":0.0102,"63112":0.0102,"63114":0.0114,"63115":0.0102,
+  "63116":0.0102,"63117":0.0114,"63118":0.0102,"63119":0.0128,
+  "63121":0.0114,"63122":0.0132,"63123":0.0114,"63124":0.0114,"63125":0.0114,
+  "63126":0.0114,"63127":0.0114,"63128":0.0114,"63129":0.0114,"63130":0.0114,
+  "63131":0.0114,"63132":0.0114,"63134":0.0114,"63135":0.0114,
+  "63136":0.0114,"63137":0.0114,"63138":0.0114,"63139":0.0102,"63141":0.0114,
+  "63143":0.0114,"63144":0.0118,"63146":0.0114,"63147":0.0102,
+  "63301":0.0092,"63303":0.0092,"63304":0.0092,
+  "63366":0.0092,"63367":0.0092,"63368":0.0092,
+  "63376":0.0092,"63385":0.0092
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let userMaxPrice = Infinity;
+let activeFilter = 'all';
+let sortKey = 'fw';
+let sortDir = -1; // -1 = desc, 1 = asc
+let budgetRun = false;
+
+// ── CALC ENGINE ──────────────────────────────────────────────────────────
+function calcPI(loan, rate){
+  const r=(rate/100)/12, n=360;
+  if(r===0) return loan/n;
+  return loan*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+}
+
+function calcMonthly(price, zip){
+  const down = parseFloat(document.getElementById('b-down').value)||0;
+  const rate = parseFloat(document.getElementById('b-rate').value)||6.1;
+  const loan = Math.max(0, price - down);
+  const pi = calcPI(loan, rate);
+  const taxRate = ZIP_TAX[zip] || 0.0114;
+  const tax = (price * taxRate) / 12;
+  const ins = 3000/12;
+  const pmi = (down/price) < 0.20 ? (loan*0.0085)/12 : 0;
+  return Math.round(pi + tax + ins + pmi);
+}
+
+function calcMaxPrice(){
+  const payment = parseFloat(document.getElementById('b-payment').value)||1800;
+  const down = parseFloat(document.getElementById('b-down').value)||0;
+  const rate = parseFloat(document.getElementById('b-rate').value)||6.1;
+  const debts = parseFloat(document.getElementById('b-debts').value)||0;
+  const r=(rate/100)/12, n=360;
+  const mrf = r===0 ? 1/n : (r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+  // factor = PI factor + tax(avg 1.1%) + ins/price + pmi(if <20% down)
+  const factor = mrf + 0.0114/12 + 3000/12/300000;
+  const net = payment - (debts * 0.1) - 3000/12;
+  return Math.round(Math.max(0, net/mrf) + down);
+}
+
+// ── BUDGET RUN ────────────────────────────────────────────────────────────
+function runBudget(){
+  budgetRun = true;
+  userMaxPrice = calcMaxPrice();
+  document.getElementById('pill-price').textContent = '$'+userMaxPrice.toLocaleString();
+
+  const matchCount = Object.keys(ZIP_DATA).filter(z => {
+    const d = ZIP_DATA[z];
+    return d.n >= 20 && d.price <= userMaxPrice;
+  }).length;
+
+  document.getElementById('pill-count').textContent = matchCount;
+  document.getElementById('result-pill').classList.add('visible');
+  renderTable();
+  renderCompare();
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────
+function setFilter(f){
+  activeFilter = f;
+  ['all','budget','competitive','value'].forEach(x => {
+    document.getElementById('f-'+x).classList.toggle('active', x===f);
+  });
+  renderTable();
+  renderCompare();
+}
+
+function passesFilter(zip, d){
+  if(d.n < 20) return false; // exclude thin samples
+  if(activeFilter === 'budget') return budgetRun && d.price <= userMaxPrice;
+  if(activeFilter === 'competitive') return d.fw >= 45;
+  if(activeFilter === 'value') return d.fw >= 40 && d.dom <= 12 && d.price <= 380000;
+  return true; // 'all'
+}
+
+// ── SORT ──────────────────────────────────────────────────────────────────
+function toggleSort(key){
+  if(sortKey === key) sortDir *= -1;
+  else { sortKey = key; sortDir = key==='price'||key==='dom'||key==='monthly' ? 1 : -1; }
+  document.getElementById('sort-select').value = key;
+  updateSortArrows();
+  renderTable();
+}
+
+function updateSortArrows(){
+  ['zip','price','monthly','fw','dom','above'].forEach(k => {
+    const el = document.getElementById('sa-'+k);
+    if(!el) return;
+    if(k === sortKey) el.textContent = sortDir === -1 ? '↓' : '↑';
+    else el.textContent = '';
+    el.closest('th').classList.toggle('sorted', k===sortKey);
+  });
+}
+
+// ── FORMAT HELPERS ────────────────────────────────────────────────────────
+function fmtPrice(n){ return '$'+Math.round(n).toLocaleString(); }
+function fwClass(fw){ return fw>=45?'hot':fw>=30?'warm':'slow'; }
+function domClass(dom){ return dom<=9?'hot':dom<=18?'warm':'slow'; }
+function signalText(fw,dom){ 
+  if(fw>=45&&dom<=9) return ['HOT','sig-hot'];
+  if(fw>=35||dom<=14) return ['ACTIVE','sig-active'];
+  return ['SLOW','sig-slow'];
+}
+function taxTag(zip){
+  const r = ZIP_TAX[zip]||0.0114;
+  if(r===0.0092) return '<span class="tax-tag">St. Charles Co.</span>';
+  if(r===0.0132) return '<span class="tax-tag">Kirkwood Dist.</span>';
+  if(r===0.0128) return '<span class="tax-tag">Webster Dist.</span>';
+  if(r===0.0118) return '<span class="tax-tag">Clayton/Brentwood</span>';
+  if(r===0.0102) return '<span class="tax-tag">St. Louis City</span>';
+  return '';
+}
+
+// ── RENDER TABLE ──────────────────────────────────────────────────────────
+function renderTable(){
+  const sortVal = document.getElementById('sort-select').value;
+  if(sortVal !== sortKey){ sortKey = sortVal; }
+
+  let rows = Object.entries(ZIP_DATA).filter(([z,d]) => passesFilter(z,d));
+
+  rows.sort(([za,da],[zb,db]) => {
+    let va, vb;
+    if(sortKey==='zip'){ va=za; vb=zb; return sortDir*(va<vb?-1:va>vb?1:0); }
+    if(sortKey==='price'){ va=da.price; vb=db.price; }
+    else if(sortKey==='fw'){ va=da.fw; vb=db.fw; }
+    else if(sortKey==='dom'){ va=da.dom; vb=db.dom; }
+    else if(sortKey==='above'){ va=da.above; vb=db.above; }
+    else if(sortKey==='monthly'){ va=calcMonthly(da.price,za); vb=calcMonthly(db.price,zb); }
+    return sortDir*(va-vb);
+  });
+
+  document.getElementById('count-display').textContent = rows.length;
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+
+  if(rows.length === 0){
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(([zip, d]) => {
+    const monthly = calcMonthly(d.price, zip);
+    const isMatch = budgetRun && d.price <= userMaxPrice;
+    const fwCls = fwClass(d.fw);
+    const domCls = domClass(d.dom);
+    const [sigText, sigCls] = signalText(d.fw, d.dom);
+    const taxNote = taxTag(zip);
+    const matchDot = isMatch ? '<span class="match-dot"></span>' : '';
+
+    return `<tr class="${isMatch?'budget-match':''}">
+      <td>
+        <div class="td-zip">${matchDot}${zip}</div>
+        <div class="td-city">${d.city}${taxNote}</div>
+      </td>
+      <td>
+        <div class="td-price">${fmtPrice(d.price)}</div>
+      </td>
+      <td>
+        <div class="td-price" style="font-size:14px;">${fmtPrice(monthly)}<span style="font-size:10px;color:var(--gray);font-family:'DM Sans',sans-serif;font-weight:400;">/mo</span></div>
+        <div class="td-monthly">PITI est.</div>
+      </td>
+      <td><span class="fw-badge fw-${fwCls}">${d.fw}%</span></td>
+      <td><span class="dom-val dom-${domCls}">${d.dom}d</span></td>
+      <td><span class="above-val">${d.above}%</span></td>
+      <td><span class="signal ${sigCls}">${sigText}</span></td>
+      <td style="font-size:11px;color:var(--gray);">${d.n}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER COMPARE ────────────────────────────────────────────────────────
+function renderCompare(){
+  const priceMax = budgetRun ? userMaxPrice : 380000;
+
+  // Best value: affordable + competitive
+  const good = Object.entries(ZIP_DATA)
+    .filter(([z,d]) => d.n>=25 && d.price<=priceMax && d.fw>=40 && d.dom<=12)
+    .sort(([,a],[,b]) => b.fw - a.fw)
+    .slice(0,8);
+
+  // Affordable but slow
+  const caution = Object.entries(ZIP_DATA)
+    .filter(([z,d]) => d.n>=20 && d.price<=priceMax && d.fw<30 && d.dom>=20)
+    .sort(([,a],[,b]) => a.price - b.price)
+    .slice(0,6);
+
+  document.getElementById('compare-good').innerHTML = good.length ? good.map(([z,d]) => {
+    const fwCls = fwClass(d.fw);
+    return `<div class="compare-item">
+      <div><span class="ci-zip">${z}</span><span class="ci-city">${d.city}</span></div>
+      <div class="ci-stats">
+        <strong>${fmtPrice(d.price)}</strong>
+        &nbsp;·&nbsp;<span class="ci-fw ${fwCls}">${d.fw}% FW</span>
+        &nbsp;·&nbsp;${d.dom}d
+      </div>
+    </div>`;
+  }).join('') : '<p style="font-size:11px;color:var(--gray);padding:8px 0;">Adjust filters to see results.</p>';
+
+  document.getElementById('compare-caution').innerHTML = caution.length ? caution.map(([z,d]) => {
+    return `<div class="compare-item">
+      <div><span class="ci-zip">${z}</span><span class="ci-city">${d.city}</span></div>
+      <div class="ci-stats">
+        <strong>${fmtPrice(d.price)}</strong>
+        &nbsp;·&nbsp;<span class="ci-fw slow">${d.fw}% FW</span>
+        &nbsp;·&nbsp;${d.dom}d
+      </div>
+    </div>`;
+  }).join('') : '<p style="font-size:11px;color:var(--gray);padding:8px 0;">No slow markets match current filters.</p>';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+updateSortArrows();
+renderTable();
+renderCompare();
+
+// Live recalc on input change
+['b-payment','b-down','b-rate','b-debts'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    if(budgetRun) runBudget();
+  });
+});
+</script>
+</body>
+</html>
